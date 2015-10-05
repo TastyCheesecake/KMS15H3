@@ -6,14 +6,15 @@ The goal of this exercise was, given an MD5 hash, to find its corresponding sour
 
 My solution uses the following approach:
 
-- Words are quickly tokenized via strtok, duplicates are removed using a simple djb2 hash table
-- Repeated computations (e.g. string length) are avoided, partial data reused where possible to decrease memcpy
-- Parallel search on unique word pairs via OpenMP
-- Given MD5 implementation improved, later replaced with a manually optimized version
-- In general, memory blocks are kept together to avoid cache thrashing
-- Various hints to the compiler (const, restrict, etc.) to allow operation ordering
+- Words are quickly tokenized via strtok, duplicates are removed using a simple djb2 hash table. This happened pretty much instantly.
+- Repeated computations (e.g. string length) are avoided, partial data (e.g. the currently used word prefix) reused where possible to decrease memcpy.
+- Parallel search on unique word pairs via OpenMP. The usual, nothing spectacular here.
+- The given MD5 implementation was improved by removing unnecessary parts, and later replaced whole with a manually optimized version.
+- In general, memory related operations are kept to the same blocks as often as possible to avoid cache thrashing. I did not go as far as using zigzagging though.
+- Various hints to the compiler (const, restrict, etc.) to allow operation reordering, which as inspection showed got very close to manually optimized assembler (I decided not to use assembler code in this project)
+- For statistics, I measured the CPU clock speed using rdtsc (which sadly does not account for core turboboost) and put it in relation to all other measured numbers. I assume the program would run a few percent faster without precisely keeping track of the number of hashed bytes etc., but did not care to verify how much exactly.
 
-As I felt the solution might be helpful to other students, I put it online. Obviously, by particularly arranging the order of checked words, one could find the target immediately, so my program will continue running even after the hash was found. Compiled with GCC 4.8.1 and running on my i5 quadcore box:
+As I felt the solution might be helpful to other students, I put it online. Obviously, by particularly arranging the order of checked words, one could find the target immediately, so my program will continue running even after the right word pair was found. Compiled with GCC 4.8.1 and running on my i5 quadcore box:
 
 	Loaded 26510 distinct words (194462 b, avg. length: 7.335421 bytes) in 0.070000 seconds
 	Performing 702780100 hashes...
