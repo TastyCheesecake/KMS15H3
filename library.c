@@ -19,13 +19,15 @@ int main () {
 	printf( "LIBRARY [KMS H3 2015]\n" );
 	printf( "Written by Sebastian Heuchler, sh87 at mail dot upb dot de\n" );
 	printf( "Source code available at http://kikashi.net/ugc/kms\n" );
-	time_t start = time( NULL );
+
+	unsigned nThreads = omp_get_max_threads ();
+	printf( "Using %u threads on %u cores\n", nThreads, (unsigned)omp_get_num_procs () );
 	struct timeval tStart;
+	gettimeofday( &tStart, NULL );
 
 	/*
 	Read source file
 	*/
-	gettimeofday( &tStart, NULL );
 	char* source = ReadFile( 1
 		? "les_miserables.txt"
 		: "les_miserables_preface.txt"
@@ -39,7 +41,11 @@ int main () {
 	*/
 	double avgWordLength = 1.0 * nbytes / nwords;
 	const word* const* list = convertToArray( head, nwords );
-	printf( "Loaded %u distinct words (%u b, avg. length: %f bytes) in %f seconds\n", nwords, nbytes, avgWordLength, getTimeDelta( &tStart ));
+	printf( "Loaded %u distinct words (%u b, avg. length: %f bytes) in %f seconds\n",
+		nwords,
+		(unsigned)nbytes,
+		avgWordLength,
+		getTimeDelta( &tStart ));
 
 	/*
 	Parallel search
@@ -94,27 +100,23 @@ int main () {
 	}
 
 	double delta = getTimeDelta( &tStart );
-	time_t end = time( NULL );
 	clk = rdtsc() - clk;
 	
-	unsigned cores = omp_get_num_procs ();
 	double hz  = 1.0 * clk / delta;
 	double hs  = totalhashes / delta;
 	double mhs = hs / 1000 / 1000;
 	double bs  = totalbytes / delta;
 	double mbs = bs / 1024 / 1024;
 	
-	printf( "Execution took ~%fs\n", difftime( end, start ) );
-	printf( "Measured clock speed of %u MHz in %u cores\n", (unsigned)(hz/1000/1000), cores );
+	printf( "Measured clock speed of %u MHz\n", (unsigned)(hz/1000/1000) );
 	printf( "Performed %u hashes (%u MB) in %f seconds\n", (unsigned)totalhashes, (unsigned)(totalbytes / 1024 / 1024), delta );
-	printf( "%f MHs (%u MB/s), %f MHs per core (%u MB/s), %f Hs (%f bytes) per kilocycle\n",
+	printf( "%f MHs (%u MB/s), %f MHs per thread (%u MB/s), %f Hs (%f bytes) per kilocycle\n",
 		mhs,
 		(unsigned)mbs,
-		mhs / cores,
-		(unsigned)(mbs / cores),
-		1000 * hs / cores / hz,
-		1000 * bs / cores / hz
-		);
+		mhs / nThreads,
+		(unsigned)(mbs / nThreads),
+		1000 * hs / nThreads / hz,
+		1000 * bs / nThreads / hz);
 	
 	return 0;
 }
