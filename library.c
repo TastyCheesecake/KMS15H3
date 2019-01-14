@@ -11,6 +11,9 @@
 #include "words.h"
 #include "util.h"
 
+// iff true, stop computation as soon as target was found
+#define BREAK_EARLY 0
+
 // delim contains \n, \r and \t in addition
 const char * const delim = "\n\r\t .,;-:0123456789?!\"*+()|&[]#$/%%'";
 
@@ -61,7 +64,7 @@ int main () {
 	
 	#pragma omp parallel for
 	for (int i = 0; i < nwords; i++) {
-		if (found) continue;
+		if (found) continue; // cannot use break in OpenMP loop
 		
 		uint8_t buffer[256];
 		uint64_t add_bytes = 0;
@@ -79,7 +82,10 @@ int main () {
 			if (testHash( buffer, len )) {
 				buffer[bufferUsedLen + p2->len] = '\0';
 				printf( "Found target! \"%s\"\n", buffer );
-				//found = 1; break;
+				if (BREAK_EARLY) {
+					found = 1;
+					break;
+				}
 			}
 			p2 = p2->next;
 		}
