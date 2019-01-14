@@ -62,7 +62,8 @@ int main () {
 	uint64_t totalbytes = 0;
 	int found = 0;
 	
-	#pragma omp parallel for
+	#pragma omp parallel
+	#pragma omp for schedule(static) reduction (+: totalhashes)
 	for (int i = 0; i < nwords; i++) {
 		if (found) continue; // cannot use break in OpenMP loop
 		
@@ -89,13 +90,13 @@ int main () {
 			}
 			p2 = p2->next;
 		}
-		
+
 		#pragma omp atomic
 		done++;
-		#pragma omp atomic
 		totalhashes += nwords;
 		#pragma omp atomic
 		totalbytes += add_bytes;
+
 		if (done % nprint == 0) {
 			double delta = getTimeDelta( &tStart );
 			unsigned perc = 100 * done / nwords;
