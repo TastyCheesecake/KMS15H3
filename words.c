@@ -88,11 +88,13 @@ int testHash (const uint8_t buffer [const restrict static 1], unsigned int len)
 {
 	uint8_t hash[HASH_LENGTH] = {0};
 	if (0) {
+		// provided MD5 implementation
 		MD5_CTX ctx;
 		MD5_Init (&ctx);
 		MD5_Update (&ctx, buffer, len);
 		MD5_Final (hash, &ctx);
 	} else {
+		// custom MD5 implementation
 		md5_hash (buffer, len, hash);
 	}
 	
