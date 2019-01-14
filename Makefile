@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-std=c11 -Wall -O3 -pedantic -fopenmp
+CFLAGS=-std=c11 -Wall -O3 -pedantic -fopenmp -march=native
 ASFLAGS=-Wall -O3 -pedantic
 LDFLAGS=-fopenmp
 
